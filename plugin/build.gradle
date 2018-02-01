@@ -1,0 +1,74 @@
+apply plugin: 'java'
+apply plugin: 'kotlin'//导入java插件用于，编译打包我们的插件
+apply plugin: 'maven'//maven插件，用于上传插件到仓库
+//uploadArchives 类型是upload，这个task不是'maven'创建的
+//而是'maven'定义了一个rule,而后由我们自己创建的，关于rule，请看后面内容
+
+class GreetingPluginExtension {
+    String message = 'Hello from GreetingPlugin'
+}
+
+
+import com.google.gson.Gson
+
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.task('hello') {
+            doLast {
+                GreetingPluginExtension e = new GreetingPluginExtension();
+                println new Gson().toJson(e)
+            }
+        }
+    }
+}
+
+apply plugin: GreetingPlugin
+
+
+uploadArchives {
+    //本地仓库的一种
+    println('I am the new one')
+    repositories {
+        mavenDeployer {
+            repository(url: uri("$rootDir/maven"))
+            pom.groupId = 'com.sf.plugin'
+            pom.artifactId = 'plugin'
+            pom.version = '1.0.0'
+        }
+    }
+}
+uploadArchives.dependsOn {
+    tasks.findAll { task -> task.name.equals('hello') }
+}
+
+
+
+
+dependencies {
+    //导入Gradle的api，要写插件，肯定要使用Gradle的api
+
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+}
+buildscript {
+    ext.kotlin_version = '1.2.21'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+repositories {
+    mavenCentral()
+}
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}

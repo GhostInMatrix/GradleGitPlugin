@@ -1,0 +1,57 @@
+apply plugin: 'java'
+apply plugin: 'kotlin'//导入java插件用于，编译打包我们的插件
+apply plugin: 'maven'//maven插件，用于上传插件到仓库
+
+import com.google.gson.Gson
+
+class GreetingPluginExtension {
+    String message = 'Hello from GreetingPlugin'
+}
+
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        // Add the 'greeting' extension object
+        def extension = project.extensions.create('greeting', GreetingPluginExtension)
+        // Add a task that uses configuration from the extension object
+        project.task('hello') {
+            doLast {
+                GreetingPluginExtension e = new GreetingPluginExtension();
+                e.message = "ghostijioepaj io";
+                println new Gson().toJson(e)
+                println extension.message
+            }
+        }
+    }
+}
+
+apply plugin: GreetingPlugin
+
+
+
+dependencies {
+    //导入Gradle的api，要写插件，肯定要使用Gradle的api
+    compile gradleApi()
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
+buildscript {
+    ext.kotlin_version = '1.2.21'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+repositories {
+    mavenCentral()
+}
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
